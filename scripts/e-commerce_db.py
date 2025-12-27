@@ -79,7 +79,21 @@ def generar_datos_mysql():
         cursor.executemany(usuarios_sql, usuarios_val)
         conn.commit()  # Importante confirmar cambios en MySQL
 
-        print("Falta generar pedidos...")
+        print("Generando pedidos...")
+        pedidos_sql = "INSERT INTO pedidos (usuario_id, fecha_pedido, total, estado) VALUES (%s, %s, %s, %s)"
+        pedidos_val = []
+        estados = ["Pendiente", "Procesando", "Enviado", "Entregado", "Cancelado"]
+        for i in range(100):
+            pedidos_val.append(
+                (
+                    i + 1,
+                    fake.date_time_this_year(),
+                    round(random.uniform(20.0, 500.0), 2),
+                    random.choice(estados),
+                )
+            )
+        cursor.executemany(pedidos_sql, pedidos_val)
+        conn.commit()
 
         conn.close()
         print("¡Datos generados en MySQL Local!")
