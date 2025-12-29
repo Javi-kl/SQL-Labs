@@ -53,6 +53,17 @@ def generar_datos_mysql():
             )
         """
         )
+        # NEW TODO
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS productos (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                nombre VARCHAR(100),
+                precio DECIMAL(10,2),
+                stock INT
+            )
+        """
+        )
 
         # 3. Limpiar datos viejos (para no duplicar)
         cursor.execute("TRUNCATE TABLE pedidos")
@@ -61,6 +72,10 @@ def generar_datos_mysql():
         )  # Truco necesario en MySQL para borrar tablas con relaciones
         cursor.execute("TRUNCATE TABLE usuarios")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+
+        # NEW TODO
+        cursor.execute("TRUNCATE TABLE productos")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
 
         # 4. Insertar (Igual que antes)
         print("Generando usuarios...")
@@ -75,7 +90,6 @@ def generar_datos_mysql():
                     fake.country(),
                 )
             )
-
         cursor.executemany(usuarios_sql, usuarios_val)
         conn.commit()  # Importante confirmar cambios en MySQL
 
@@ -93,6 +107,22 @@ def generar_datos_mysql():
                 )
             )
         cursor.executemany(pedidos_sql, pedidos_val)
+        conn.commit()
+
+        print("Generando productos...")
+        productos_sql = (
+            "INSERT INTO productos (nombre, precio, stock) VALUES (%s, %s, %s)"
+        )
+        productos_val = []
+        for _ in range(25):
+            productos_val.append(
+                (
+                    fake.catch_phrase(),
+                    round(random.uniform(10.0, 100.0), 2),
+                    round(random.randint(0, 20)),
+                )
+            )
+        cursor.executemany(productos_sql, productos_val)
         conn.commit()
 
         conn.close()
