@@ -53,7 +53,7 @@ def generar_datos_mysql():
             )
         """
         )
-        # NEW TODO
+
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS productos (
@@ -65,6 +65,7 @@ def generar_datos_mysql():
         """
         )
 
+        # Nota: COnvertir este bloque en una clase
         # 3. Limpiar datos viejos (para no duplicar)
         cursor.execute("TRUNCATE TABLE pedidos")
         cursor.execute(
@@ -73,11 +74,11 @@ def generar_datos_mysql():
         cursor.execute("TRUNCATE TABLE usuarios")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 
-        # NEW TODO
         cursor.execute("TRUNCATE TABLE productos")
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
 
-        # 4. Insertar (Igual que antes)
+        # Nota: COnvertir este bloque en una clase
+        # Insertar Datos
         print("Generando usuarios...")
         usuarios_sql = "INSERT INTO usuarios (nombre, email, fecha_registro, pais) VALUES (%s, %s, %s, %s)"
         usuarios_val = []
@@ -100,7 +101,7 @@ def generar_datos_mysql():
         for i in range(100):
             pedidos_val.append(
                 (
-                    i + 1,
+                    random.randint(1, 100),
                     fake.date_time_this_year(),
                     round(random.uniform(20.0, 500.0), 2),
                     random.choice(estados),
@@ -119,7 +120,7 @@ def generar_datos_mysql():
                 (
                     fake.catch_phrase(),
                     round(random.uniform(10.0, 100.0), 2),
-                    round(random.randint(0, 20)),
+                    random.randint(0, 20),
                 )
             )
         cursor.executemany(productos_sql, productos_val)
@@ -130,6 +131,14 @@ def generar_datos_mysql():
 
     except mysql.connector.Error as err:
         print(f"Error: {err}")
+
+
+# NEW TODO
+def generar_detalles_pedido():
+    # Para cada pedido, asignar entre 1 y 5 productos aleatorios.
+    # Calcular el total del pedido sumando (precio_producto * cantidad).
+    # Actualizar la tabla 'pedidos' con ese total real.
+    pass
 
 
 if __name__ == "__main__":
