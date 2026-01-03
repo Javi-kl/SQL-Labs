@@ -33,7 +33,7 @@ def generar_tablas_mysql(conn):
 
     cursor.execute(
         """
-            CREATE TABLE IF NOT EXISTS usuarios (
+            CREATE TABLE IF NOT EXISTS clientes (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 nombre VARCHAR(100),
                 email VARCHAR(100),
@@ -51,7 +51,7 @@ def generar_tablas_mysql(conn):
                 fecha_pedido DATE,
                 total DECIMAL(10,2),
                 estado VARCHAR(20),
-                FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+                FOREIGN KEY (usuario_id) REFERENCES clientes(id)
             )
         """
     )
@@ -74,7 +74,9 @@ def generar_tablas_mysql(conn):
                 pedido_id INT,
                 producto_id INT,
                 cantidad INT,
-                precio_unitario DECIMAL(10,2)
+                precio_unitario DECIMAL(10,2),
+                FOREIGN KEY (producto_id) REFERENCES productos(id),
+                FOREIGN KEY (pedido_id) REFERENCES pedidos(id)
             )
         """
     )
@@ -86,26 +88,26 @@ class GeneradorDatos:
         self.cursor = conn.cursor()
         self.fake = Faker("es_ES")
 
-    def limpiar_datos(self):
+    def limpiar_tablas(self):
 
         print("Limpiando datos antiguos...")
         self.cursor.execute(
             "SET FOREIGN_KEY_CHECKS = 0"
         )  # desactiva el checkeo de foreign key para que mysql permita borrar las tablas que tengan esta llave.
         self.cursor.execute(
-            "TRUNCATE TABLE pedidos"
-        )  # borrar contenido de tabla pedidos.
-        self.cursor.execute("TRUNCATE TABLE usuarios")
-        self.cursor.execute("TRUNCATE TABLE productos")
-        self.cursor.execute("TRUNCATE TABLE detalles_pedidos")
+            "DROP TABLE IF EXISTS detalles_pedidos"
+        )  # Si existen, borra la tabla y los datos. (NO HACER NUNCA EN PRODUCCIÓN)
+        self.cursor.execute("DROP TABLE IF EXISTS pedidos")
+        self.cursor.execute("DROP TABLE IF EXISTS usuarios")
+        self.cursor.execute("DROP TABLE IF EXISTS productos")
 
         self.cursor.execute(
             "SET FOREIGN_KEY_CHECKS = 1"
         )  # Vuelve a activar el checkeo foreign key
 
-    def generar_usuarios(self):
-        print("Generando usuarios...")
-        usuarios_sql = "INSERT INTO usuarios (nombre, email, fecha_registro, pais) VALUES (%s, %s, %s, %s)"
+    def generar_clientes(self):
+        print("Generando clientes...")
+        usuarios_sql = "INSERT INTO clientes (nombre, email, fecha_registro, pais) VALUES (%s, %s, %s, %s)"
         usuarios_val = []
         for _ in range(100):
             usuarios_val.append(
@@ -128,8 +130,8 @@ class GeneradorDatos:
             pedidos_val.append(
                 (
                     random.randint(1, 100),
-                    self.fake.date_time_this_year(),
-                    0,
+                    self.fake.date_between(start_date="-2y"),
+                    round(random.uniform(1.0, 50.0), 2),
                     random.choice(estados),
                 )
             )
@@ -157,10 +159,10 @@ class GeneradorDatos:
 if __name__ == "__main__":
     try:
         conexion = inicializar_conexion()
-        generar_tablas_mysql(conexion)
         generador = GeneradorDatos(conexion)
-        generador.limpiar_datos()
-        generador.generar_usuarios()
+        generador.limpiar_tablas()
+        generar_tablas_mysql(conexion)
+        generador.generar_clientes()
         generador.generar_pedidos()
         generador.generar_productos()
         print("¡Datos generados en MySQL Local!")
