@@ -39,8 +39,31 @@ ON clientes.id = pedidos.cliente_id
 GROUP BY clientes.id, clientes.nombre;
 
 
+#--21. "Calcula cuánto costaba cada unidad del producto en el momento de la venta 
+#--basándote en el subtotal pagado, y compáralo con el precio actual del catálogo."
+
+SELECT 
 
 
+
+#--22. La Cesta de la Compra Más Grande
+#--"¿Cuál es el pedido que ha tenido más artículos distintos dentro?"
+
+SELECT COUNT(DISTINCT dp.producto_id) AS 'Productos_distintos'
+FROM detalles_pedidos dp
+GROUP BY pedido_id
+ORDER BY Productos_distintos DESC
+LIMIT 1;
+
+#--23. "¿Qué producto se compra más veces, pero en cantidad de 1 sola unidad?"
+
+SELECT  p.nombre AS 'Producto', COUNT(dp.id) AS 'Veces_comprado_suelto'
+FROM detalles_pedidos dp 
+INNER JOIN productos p ON dp.producto_id = p.id 
+WHERE dp.cantidad = 1
+GROUP BY p.nombre
+ORDER BY Veces_comprado_suelto DESC
+LIMIT 1;
 
 
 

@@ -42,7 +42,8 @@ ON clientes.id = pedidos.cliente_id;
 #--13. ¿Qué usuarios existen pero NUNCA han comprado nada?
 SELECT clientes.nombre
 FROM clientes
-WHERE id NOT IN (SELECT DISTINCT cliente_id FROM pedidos);
+LEFT JOIN pedidos ON clientes.id = pedidos.cliente_id
+WHERE pedidos.cliente_id IS NULL;
 
 #--14. ¿Quién es el cliente que más dinero ha gastado en total (suma de pedidos)?
 SELECT clientes.nombre, SUM(pedidos.total) AS 'Total pedido'
