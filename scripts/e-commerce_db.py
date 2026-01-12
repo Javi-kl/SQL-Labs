@@ -91,9 +91,7 @@ class GeneradorDatos:
     def limpiar_tablas(self):
         print("Limpiando datos antiguos...")
         self.cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-        self.cursor.execute(
-            "DROP TABLE IF EXISTS detalles_pedidos"
-        )  # (NO HACER NUNCA EN PRODUCCIÓN)
+        self.cursor.execute("DROP TABLE IF EXISTS detalles_pedidos")
         self.cursor.execute("DROP TABLE IF EXISTS pedidos")
         self.cursor.execute("DROP TABLE IF EXISTS clientes")
         self.cursor.execute("DROP TABLE IF EXISTS productos")

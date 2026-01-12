@@ -1,4 +1,4 @@
-#-- QUERIES (2026-01-03 /  ....)
+#-- QUERIES (2026-01-03 /  2026-01-12)
 
 #--16. ¿Cuál es el ticket medio (promedio de gasto) por usuario?
 #--(Queremos saber cuánto gasta de media cada cliente real,
@@ -42,7 +42,10 @@ GROUP BY clientes.id, clientes.nombre;
 #--21. "Calcula cuánto costaba cada unidad del producto en el momento de la venta 
 #--basándote en el subtotal pagado, y compáralo con el precio actual del catálogo."
 
-SELECT 
+SELECT p.id AS 'id de pedido', dp.subtotal / dp.cantidad AS 'precio pagado', prod.precio AS 'precio actual' 
+FROM detalles_pedidos dp
+INNER JOIN pedidos p ON dp.pedido_id = p.id
+INNER JOIN productos prod ON dp.producto_id = prod.id;
 
 
 
@@ -64,6 +67,28 @@ WHERE dp.cantidad = 1
 GROUP BY p.nombre
 ORDER BY Veces_comprado_suelto DESC
 LIMIT 1;
+
+
+#--comprobar si hay pedidos para españa
+SELECT id, nombre FROM clientes
+WHERE pais = 'España';
+
+SELECT * FROM pedidos p 
+WHERE p.cliente_id = 81;
+
+#--24 ¿Qué producto es el más vendido en 'Suiza'?
+SELECT p2.nombre, SUM(dp.cantidad) AS 'total_unidades_vendidas'
+FROM detalles_pedidos dp 
+INNER JOIN pedidos p ON dp.pedido_id = p.id 
+INNER JOIN clientes c ON p.cliente_id = c.id
+INNER JOIN productos p2 ON dp.producto_id = p2.id
+WHERE c.pais = 'Suiza'
+GROUP BY dp.producto_id
+ORDER BY total_unidades_vendidas DESC
+LIMIT 1;
+
+
+
 
 
 
