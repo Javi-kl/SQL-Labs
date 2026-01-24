@@ -1,70 +1,86 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, Integer, String, DECIMAL, ForeignKey, select
+from sqlalchemy.orm import DeclarativeBase, Session, Mapped, mapped_column, relationship
+from sqlalchemy.engine import URL
 from faker import Faker
+from datetime import date
 import random
 import os
 from dotenv import load_dotenv
 
 
-# Obtener password del .env
+load_dotenv()
 DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_URL = f"jdbc:postgresql://postgres:{DB_PASSWORD}localhost:5432/postgres"
-# jdbc:postgresql://{host}[:{port}]/[{database}]
+DB_URL = f"postgresql+psycopg2://postgres:{DB_PASSWORD}localhost:5432/postgres"
 
-# iniciar conexion
 engine = create_engine(DB_URL, echo=True)
 
 
-# clase base para definir
-Base = declarative_base()
-
-# configurar sesion
-Session = sessionmaker(autoflush=False, bing=engine)
-
-session = Session()
+class Base(DeclarativeBase):
+    pass
 
 
-# Definir modelos/tablas
 class Customer(Base):
     __tablename__ = "customers"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    email = Column(String)
-    register_date = Column(Date)
-    country = Column(String)
 
-
-class Order(Base):
-    __tablename__ = "orders"
-    id = Column(Integer, primary_key=True)
-    customer_id = Column(
-        Integer,
-    )  # Falta foreign
-    order_date = Column(Date)
-    total = Column(Float)
-    estado = Column(String)
+    id: Mapped[str] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100))
+    email: Mapped[str] = mapped_column(String(100))
+    register_date: Mapped[date] = mapped_column()
+    country: Mapped[str] = mapped_column(String(50))
 
 
 class Product(Base):
     __tablename__ = "products"
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    price = Column(Float)
-    stock = Column(Integer)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[String] = mapped_column(String(100))
+    price: Mapped[float] = mapped_column(DECIMAL(10, 2))
+    stock: Mapped[int] = mapped_column(Integer)
+
+
+class Order(Base):
+    __tablename__ = "orders"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    order_date: Mapped[date] = mapped_column()
+    total: Mapped[float] = mapped_column(DECIMAL(10, 2), default=0)
+    estado: Mapped[str] = mapped_column(String(20))
+    cliente: Mapped["Customer"] = relationship()
 
 
 class OrderDetail(Base):
     __tablename__ = "order_details"
-    id = Column(Integer, primary_key=True)
-    order_id = Column(Integer)
-    producto_id = Column(Integer)
-    amount = Column(Integer)
-    subtotal = Column(Float)
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id"))
+    amount: Mapped[int] = mapped_column(Integer)
+    subtotal: Mapped[float] = mapped_column(DECIMAL(10, 2))
+
+    order: Mapped["Order"] = relationship()
+    product: Mapped["Product"] = relationship()
 
 
-try:
-    Base.metadata.create_all(engine)
-    print("base de conectada y tabla craeda")
-except Exception as e:
-    print(f"Se ha producido un error: {e}")
+class Data_generator:
+    def __init__(self, session, Session):
+        self.session = session
+        self.fake = Faker("es_ES")
+
+    def clear_tables(self):
+        print("Recreando tablas...")
+        Base.metadata.drop_all(engine)
+        Base.metadata.create_all(engine)
+
+    def custormers_generator(self):
+        customers = []
+        for _ in range(25):
+            c = Customer(
+                name=self.fake.name(),
+                email=self.fake.email(),
+                register_date=self.fake.date_between(start_date="-2y"),
+                country=self.fake.country(),
+            )
+            customers.append(c)
+        self.session.add_all(customers)
+        self.session.commit()
