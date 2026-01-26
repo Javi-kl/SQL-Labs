@@ -31,7 +31,9 @@ class Customer(Base):
     email: Mapped[str] = mapped_column(String(100))
     register_date: Mapped[date] = mapped_column()
     country: Mapped[str] = mapped_column(String(50))
-    orders: Mapped[List["Order"]] = relationship(back_populates="customer")
+    orders: Mapped[List["Order"]] = relationship(
+        back_populates="customer", cascade="all, delete-orphan"
+    )
 
 
 class Product(Base):
@@ -52,7 +54,9 @@ class Order(Base):
     total: Mapped[float] = mapped_column(DECIMAL(10, 2), default=0)
     state: Mapped[str] = mapped_column(String(20))
     customer: Mapped["Customer"] = relationship(back_populates="orders")
-    details: Mapped[List["OrderDetail"]] = relationship(back_populates="order")
+    details: Mapped[List["OrderDetail"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
 
 
 class OrderDetail(Base):
